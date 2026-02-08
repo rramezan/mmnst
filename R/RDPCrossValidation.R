@@ -143,7 +143,11 @@ RDPCrossValidation <- function(spikes, t.start = 0, t.end,
         ncol = length(N.values)
       )
     } else {
-      ISE.matrix <- matrix(NA, nrow = length(poss.lambda), ncol = length(N.values))
+      ISE.matrix <- matrix(
+        NA,
+        nrow = length(poss.lambda),
+        ncol = length(N.values)
+      )
 
       pb <- utils::txtProgressBar(max = length(N.values) * length(poss.lambda), style = 3)
       for (J in 1:length(N.values)) {
