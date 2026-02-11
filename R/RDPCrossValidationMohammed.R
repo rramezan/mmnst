@@ -13,6 +13,7 @@
 #' If FALSE, performs leave-one-spike-out cross-validation for the c(t) estimate from each individual train.
 #' @param max.diff the maximum allowance for the integrated squared error (ISE) of a smaller model to deviate from the overall minimum ISE.
 #' @param pct.diff.plot a logical value indicating whether to produce a plot of the percentage difference (above minimum ISE) vs. J.
+#' @param print.J.value a logical value indicating whether to print off the J value at each step of the cross-validation or not.
 #' @param allow.parallel a logical value indicating whether to parallelize the computation of the ISE matrix or not.
 #'
 #' @return A list of length 3 is returned returned.
@@ -22,11 +23,11 @@
 #'
 #' @export
 
-RDPCrossValidation <- function(spikes, t.start = 0, t.end,
-                               poss.lambda = seq(0, 10, by = 0.1),
-                               max.J = 7, PSTH = FALSE,
-                               max.diff = 0.005, pct.diff.plot = TRUE,
-                               allow.parallel = TRUE) {
+RDPCrossValidation1 <- function(spikes, t.start = 0, t.end,
+                                poss.lambda = seq(0, 10, by = 0.1),
+                                max.J = 7, PSTH = FALSE,
+                                max.diff = 0.005, pct.diff.plot = TRUE,
+                                print.J.value = TRUE, allow.parallel = TRUE) {
   # spikes = list of vectors; each vector represents the spike train for one of many repeated trials
   # Time = Time vector; can be just the start and end times of the recording; should be the same for all spike trains
   # poss.lambda = a grid of penalty values; by default, 0 to 10 in increments of 0.1
@@ -117,43 +118,37 @@ RDPCrossValidation <- function(spikes, t.start = 0, t.end,
     }
 
     if (allow.parallel) {
-      # Prepare cluster for parallel computation
-      cl <- parallel::makeCluster(max(1L, parallel::detectCores() - 1L))
-      on.exit(parallel::stopCluster(cl), add = TRUE)
+      library(doSNOW)
 
-      # Grid of indices (lambda varies fastest)
-      grid <- expand.grid(
-        J = seq_along(N.values),
-        lambda.idx = seq_along(poss.lambda)
-      )
+      # Prepares the machine for parallel computation
+      cl <- makeSOCKcluster(parallel::detectCores() - 1)
+      registerDoSNOW(cl)
 
-      # Parallel apply with progress bar
-      vals <- pbapply::pblapply(
-        X = seq_len(nrow(grid)),
-        FUN = function(i) {
-          compute.ISE(grid$J[[i]], grid$lambda.idx[[i]])
-        },
-        cl = cl
-      )
+      # Set up progress bar
+      pb <- txtProgressBar(max = length(N.values) * length(poss.lambda), style = 3)
+      progress <- function(n) setTxtProgressBar(pb, n)
+      opts <- list(progress = progress)
 
-      # Build matrix
-      ISE.matrix <- matrix(
-        unlist(vals),
-        nrow = length(poss.lambda),
-        ncol = length(N.values)
-      )
+      # Compute all necessary ISE values
+      holder <- foreach(J = 1:length(N.values), .combine = "cbind") %:%
+        foreach(lambda.idx = 1:length(poss.lambda), .options.snow = opts) %dopar% { # one pass = one entry in the lambda^th row of the ISE matrix
+          compute.ISE(J, lambda.idx)
+        }
+
+      close(pb)
+      stopCluster(cl)
+      ISE.matrix <- matrix(unlist(holder), nrow = length(poss.lambda), ncol = length(N.values))
     } else {
-      ISE.matrix <- matrix(
-        NA,
-        nrow = length(poss.lambda),
-        ncol = length(N.values)
-      )
+      ISE.matrix <- matrix(NA, nrow = length(poss.lambda), ncol = length(N.values))
 
-      pb <- utils::txtProgressBar(max = length(N.values) * length(poss.lambda), style = 3)
+      pb <- txtProgressBar(max = length(N.values) * length(poss.lambda), style = 3)
       for (J in 1:length(N.values)) {
+        # if (print.J.value) {
+        #   cat("J =", J, "\n")
+        # }
         for (lambda.idx in 1:length(poss.lambda)) { # one pass = one entry in the lambda^th row of the ISE matrix
           ISE.matrix[lambda.idx, J] <- compute.ISE(J, lambda.idx)
-          utils::setTxtProgressBar(pb, (J - 1) * length(poss.lambda) + lambda.idx)
+          setTxtProgressBar(pb, (J - 1) * length(poss.lambda) + lambda.idx)
         }
       }
     }
