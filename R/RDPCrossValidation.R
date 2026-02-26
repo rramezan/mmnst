@@ -22,11 +22,11 @@
 #'
 #' @export
 
-RDPCrossValidationAllTrials <- function(spikes, t.start = 0, t.end,
-                                        poss.lambda = seq(0, 10, by = 0.1),
-                                        max.J = 7, PSTH = FALSE,
-                                        max.diff = 0.005, pct.diff.plot = TRUE,
-                                        allow.parallel = TRUE) {
+RDPCrossValidation <- function(spikes, t.start = 0, t.end,
+                               poss.lambda = seq(0, 10, by = 0.1),
+                               max.J = 7, PSTH = FALSE,
+                               max.diff = 0.005, pct.diff.plot = TRUE,
+                               allow.parallel = TRUE) {
   # spikes = list of vectors; each vector represents the spike train for one of many repeated trials
   # Time = Time vector; can be just the start and end times of the recording; should be the same for all spike trains
   # poss.lambda = a grid of penalty values; by default, 0 to 10 in increments of 0.1
