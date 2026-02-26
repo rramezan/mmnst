@@ -21,7 +21,7 @@
 #' The second item in the list is the optimal penalty term as corresponding to that partition depth (J).
 #' The third item in the list is a matrix containing the ISE values for all combinations of partition depth and penalty term.
 #'
-
+#' @noRd
 # @export
 
 RDPCrossValidation1 <- function(spikes, t.start = 0, t.end,
