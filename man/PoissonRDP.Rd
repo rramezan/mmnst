@@ -4,7 +4,7 @@
 \alias{PoissonRDP}
 \title{Poisson Recursive Dyadic Partitioning}
 \source{
-This code is based on \href{http://math.bu.edu/people/kolaczyk/software/msglmcode.zip}{MATLAB code} from Kolaczyk and Nowak (2005). Drs. Kolaczyk and Nowak have agreed to allow our translation in the package.
+This code is an R translation of the \href{http://math.bu.edu/people/kolaczyk/software/msglmcode.zip}{MATLAB code} from Kolaczyk and Nowak (2005) adjusting for piecewise constant intensity function; i.e., m = 0 in the original MATLAB code.
 }
 \usage{
 PoissonRDP(sig, gamma)
@@ -15,7 +15,12 @@ PoissonRDP(sig, gamma)
 \item{gamma}{a scalar determining the penalty factor in the penalized likelihood method.}
 }
 \value{
-A numeric vector of estimated c(t), the smoothed histogram of data.
+A list containing two numeric vectors:
+\enumerate{
+\item \code{est}: The estimated intensity function, represented as the RDP piecewise-constant estimate $c(t)$.
+\item \code{splitvec}: A binary vector of length $2^J - 1$, where $2^J$ is the length of the input \code{sig}. Its entries correspond to the internal nodes of the complete dyadic partition tree, ordered breadth-first: starting with the root node, followed by nodes at successively finer scales from left to right within each level.
+An entry \code{splitvec[i] = 1} indicates that the corresponding node is retained as a split, so that its two child intervals remain separate. An entry \code{splitvec[i] = 0} indicates that the node does not split.
+}
 }
 \description{
 Calculates the piecewise constant intensity function using penalized likelihood recursive dyadic partitioning method in a Poisson model.

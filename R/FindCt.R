@@ -17,68 +17,64 @@
 #' `ct.avg` contains the single estimate of \eqn{c(t)} obtained by averaging the `ct.best` estimates.
 #'
 #' @export
-FindCt<-function(spikes, t.start, t.end, lambda, J, PSTH = FALSE){
+FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
+  T.data <- t.end - t.start
+  val <- floor(2^J)
+  by.terminal <- T.data / val
 
-T.data<-t.end-t.start
-val <- floor(2^J)
-by.terminal<-T.data/val
+  terminal.points <- seq(t.start, t.end, by.terminal)
 
-terminal.points <- seq(t.start,t.end,by.terminal)
+  if (PSTH) {
+    xi <- sort(unlist(spikes)) # this is a single vector containing all spike times across all trials
+    count.points <- numeric(val)
 
-if (PSTH){
+    for (ii in 1:val) {
+      count.points[ii] <- length(xi[xi >= terminal.points[ii] & xi < terminal.points[ii + 1]])
+    }
 
-  xi <- sort(unlist(spikes)) # this is a single vector containing all spike times across all trials
-  count.points<-numeric(val)
+    if (J == 0) {
+      ct.best.PSTH <- count.points
+    } else {
+      ct.best.PSTH <- PoissonRDP(count.points, lambda)$est
+    }
 
-  for (ii in 1:val){
-    count.points[ii]<-length(xi[xi>=terminal.points[ii] & xi<terminal.points[ii+1]])
-  }
-
-  if (J == 0){
-    ct.best.PSTH <- count.points
+    ct.best <- matrix(ct.best.PSTH, nrow = length(spikes), ncol = val, byrow = TRUE) / length(spikes)
   } else {
-    ct.best.PSTH <-PoissonRDP(count.points,lambda)
+    ct.best <- matrix(NA, nrow = length(spikes), ncol = val)
+
+    if (length(spikes) == 0) {
+      stop("No spike trains provided; cannot estimate c(t).")
+    }
+
+    for (i in 1:length(spikes)) {
+      xi <- spikes[[i]]
+      count.points <- numeric(val)
+      for (ii in 1:val) {
+        count.points[ii] <- length(xi[xi >= terminal.points[ii] & xi < terminal.points[ii + 1]])
+      }
+      if (J == 0) {
+        ct.best[i, ] <- count.points
+      } else {
+        ct.best[i, ] <- PoissonRDP(count.points, lambda)$est
+      }
+    }
   }
 
-  ct.best <- matrix(ct.best.PSTH, nrow = length(spikes), ncol = val, byrow = TRUE)/length(spikes)
+  # This is the new version. It counts the aggregate total of the number of spikes within the
+  # ct.best is now a matrix that contains the aggregate best ct estimate in each row
 
-} else {
+  ## output of PoissonRDP is not exactly c(t), needs to be scaled by multiplying by val/T.data
+  ct.best <- ct.best / (by.terminal)
 
-  ct.best<-matrix(NA,nrow=length(spikes),ncol=val)
+  ## We have 1 c(t) estimate per spike train. This means that the process of merging partitions may not be the same on every spike train.
+  ## To get a single "best" estimate of c(t), we average the c(t) estimates at each time point.
+  ## Because the partitions may merge at different points for different spike trains, averaging the spike trains will "destroy" the apparent merge.
+  ct.avg <- apply(ct.best, 2, mean)
 
-  if(length(spikes) == 0){
-    stop("No spike trains provided; cannot estimate c(t).")
+
+  if (length(spikes) == 1) {
+    warning("c(t) was estimated using only one spike train.", call. = FALSE)
   }
 
-  for (i in 1:length(spikes)){
-  	xi <- spikes[[i]]
-  	count.points<-numeric(val)
-  	for (ii in 1:val){
-  		count.points[ii]<-length(xi[xi>=terminal.points[ii] & xi<terminal.points[ii+1]])
-  	}
-        if (J == 0){
-          ct.best[i,] <- count.points
-        } else {
-          ct.best[i,]<-PoissonRDP(count.points,lambda)
-        }
-  }
-}
-
-# This is the new version. It counts the aggregate total of the number of spikes within the
-# ct.best is now a matrix that contains the aggregate best ct estimate in each row
-
-##output of PoissonRDP is not exactly c(t), needs to be scaled by multiplying by val/T.data
-ct.best<-ct.best/(by.terminal)
-
-## We have 1 c(t) estimate per spike train. This means that the process of merging partitions may not be the same on every spike train.
-## To get a single "best" estimate of c(t), we average the c(t) estimates at each time point.
-## Because the partitions may merge at different points for different spike trains, averaging the spike trains will "destroy" the apparent merge.
-ct.avg<-apply(ct.best,2,mean)
-
-
-if (length(spikes) == 1){
-  warning("c(t) was estimated using only one spike train.", call. = FALSE)
-}
-
-return(list(ct.avg = ct.avg, ct.best = ct.best))
+  return(list(ct.avg = ct.avg, ct.best = ct.best))
 }

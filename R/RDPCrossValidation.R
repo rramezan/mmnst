@@ -79,7 +79,7 @@ RDPCrossValidation <- function(spikes, t.start = 0, t.end,
       for (i in 1:n.trials) {
         xi <- spikes[[i]]
         if (length(xi) != 0) {
-          f.hat.i[i, ] <- PoissonRDP(count.points[[J]][[i]], lambda) * (val / (T.data * length(xi)))
+          f.hat.i[i, ] <- PoissonRDP(count.points[[J]][[i]], lambda)$est * (val / (T.data * length(xi)))
         }
       }
 
