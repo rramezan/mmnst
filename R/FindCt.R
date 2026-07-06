@@ -27,7 +27,9 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
 
   if (PSTH) {
     count.points <- tabulate(findInterval(sort(unlist(spikes)), terminal.points, left.open = TRUE))
-
+    if (val - length(count.points) > 0) {
+      count.points <- c(count.points, rep(0, val - length(count.points)))
+    }
     if (J == 0) {
       ct.best.PSTH <- count.points
     } else {
@@ -39,7 +41,10 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
     count.points <- do.call(
       rbind,
       lapply(spikes, function(x) {
-        tabulate(findInterval(x, terminal.points, left.open = TRUE))
+        counts <- tabulate(findInterval(x, terminal.points, left.open = TRUE))
+        if (val - length(counts) > 0) {
+          counts <- c(counts, rep(0, val - length(counts)))
+        }
       })
     )
 
