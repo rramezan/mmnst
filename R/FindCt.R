@@ -24,13 +24,9 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
 
   terminal.points <- seq(t.start, t.end, by.terminal)
 
-  if (PSTH) {
-    xi <- sort(unlist(spikes)) # this is a single vector containing all spike times across all trials
-    count.points <- numeric(val)
 
-    for (ii in 1:val) {
-      count.points[ii] <- length(xi[xi >= terminal.points[ii] & xi < terminal.points[ii + 1]])
-    }
+  if (PSTH) {
+    count.points <- tabulate(findInterval(sort(unlist(spikes)), terminal.points, left.open = TRUE))
 
     if (J == 0) {
       ct.best.PSTH <- count.points
@@ -40,6 +36,13 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
 
     ct.best <- matrix(ct.best.PSTH, nrow = length(spikes), ncol = val, byrow = TRUE) / length(spikes)
   } else {
+    count.points <- do.call(
+      rbind,
+      lapply(spikes, function(x) {
+        tabulate(findInterval(x, terminal.points, left.open = TRUE))
+      })
+    )
+
     ct.best <- matrix(NA, nrow = length(spikes), ncol = val)
 
     if (length(spikes) == 0) {
@@ -47,15 +50,10 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
     }
 
     for (i in 1:length(spikes)) {
-      xi <- spikes[[i]]
-      count.points <- numeric(val)
-      for (ii in 1:val) {
-        count.points[ii] <- length(xi[xi >= terminal.points[ii] & xi < terminal.points[ii + 1]])
-      }
       if (J == 0) {
-        ct.best[i, ] <- count.points
+        ct.best[i, ] <- count.points[i, ]
       } else {
-        ct.best[i, ] <- PoissonRDP(count.points, lambda)$est
+        ct.best[i, ] <- PoissonRDP(count.points[i, ], lambda)$est
       }
     }
   }
