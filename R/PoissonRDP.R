@@ -8,7 +8,7 @@
 #'
 #' @return A list containing two numeric vectors:
 #' 1. `est`: The estimated intensity function, represented as the RDP piecewise-constant estimate \eqn{c(t)}.
-#' 2. `splitvec`: A binary vector of length \eqn{2^J - 1}, where $2^J$ is the length of the input `sig`. Its entries correspond to the internal nodes of the complete dyadic partition tree, ordered breadth-first: starting with the root node, followed by nodes at successively finer scales from left to right within each level.
+#' 2. `splitvec`: A binary vector of length \eqn{2^J - 1}, where \eqn{2^J} is the length of the input `sig`. Its entries correspond to the internal nodes of the complete dyadic partition tree, ordered breadth-first: starting with the root node, followed by nodes at successively finer scales from left to right within each level.
 #' An entry `splitvec[i] = 1` indicates that the corresponding node is retained as a split, so that its two child intervals remain separate. An entry `splitvec[i] = 0` indicates that the node does not split.
 #'
 #' @source This code is an R translation of the [MATLAB code](http://math.bu.edu/people/kolaczyk/software/msglmcode.zip) from Kolaczyk and Nowak (2005) adjusting for piecewise constant intensity function; i.e., m = 0 in the original MATLAB code.

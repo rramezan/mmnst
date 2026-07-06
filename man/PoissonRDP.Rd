@@ -18,7 +18,7 @@ PoissonRDP(sig, gamma)
 A list containing two numeric vectors:
 \enumerate{
 \item \code{est}: The estimated intensity function, represented as the RDP piecewise-constant estimate \eqn{c(t)}.
-\item \code{splitvec}: A binary vector of length \eqn{2^J - 1}, where $2^J$ is the length of the input \code{sig}. Its entries correspond to the internal nodes of the complete dyadic partition tree, ordered breadth-first: starting with the root node, followed by nodes at successively finer scales from left to right within each level.
+\item \code{splitvec}: A binary vector of length \eqn{2^J - 1}, where \eqn{2^J} is the length of the input \code{sig}. Its entries correspond to the internal nodes of the complete dyadic partition tree, ordered breadth-first: starting with the root node, followed by nodes at successively finer scales from left to right within each level.
 An entry \code{splitvec[i] = 1} indicates that the corresponding node is retained as a split, so that its two child intervals remain separate. An entry \code{splitvec[i] = 0} indicates that the node does not split.
 }
 }
