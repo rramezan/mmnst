@@ -45,6 +45,7 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
         if (val - length(counts) > 0) {
           counts <- c(counts, rep(0, val - length(counts)))
         }
+        counts
       })
     )
 
