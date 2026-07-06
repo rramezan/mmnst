@@ -46,7 +46,7 @@ PoissonRDP <- function(sig, gamma) {
   sumx <- c(sig, zeropadding)
   n2 <- length(sumx)
 
-  lam <- log(n) * gam
+  lam <- log(n) * gamma
 
   bestFit <- sig
   bestPL <- sig * log(pmax(bestFit, 1e-50)) - bestFit
