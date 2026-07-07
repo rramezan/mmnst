@@ -21,11 +21,11 @@ FindCt(spikes, t.start, t.end, lambda, J, PSTH = FALSE)
 If FALSE, will estimate a c(t) for each trial and average the c(t) estimates.}
 }
 \value{
-A list of length 2 is returned.
-If PSTH=TRUE, the first item in the list (\code{ct.avg}) is the single estimate of c(t) based on the PSTH (scaled appropriately so that it integrates to the average number of spikes per trial),
-and the second item in the list (\code{ct.best}) is a matrix, containing one row per spike train / trial, whose rows each replicate \code{ct.avg}.
+A list of length 3 is returned.
+If PSTH=TRUE, the first item in the list (\code{ct.avg}) is the single estimate of \eqn{c(t)} based on the PSTH (scaled appropriately so that it integrates to the average number of spikes per trial),
+and the second item in the list (\code{ct.best}) is a matrix, containing one row per spike train / trial, whose rows each replicate \code{ct.avg}. The third element in the list (\code{split}) is the a binary vector of split status of each node which is the \code{splitvec} output from the function \code{PoissonRDP}.
 If PSTH=FALSE, each row of \code{ct.best} contains the \eqn{c(t)} estimates for the individual spike trains / trials, and
-\code{ct.avg} contains the single estimate of \eqn{c(t)} obtained by averaging the \code{ct.best} estimates.
+\code{ct.avg} contains the single estimate of \eqn{c(t)} obtained by averaging the \code{ct.best} estimates. The third element (\code{split}) is a matrix whose ith row is the \code{splitvec} vector from the function \code{PoissonRDP} applied on the ith spike train.
 }
 \description{
 Compute the piecewise constant estimate of the intensity function, \eqn{c(t)}, for each spike train
