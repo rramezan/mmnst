@@ -45,7 +45,8 @@ RDPCrossValidationPerTrial <- function(SingleSpikeTrain, t.start = 0, t.end,
 
   count.points <- lapply(
     terminal.points,
-    function(tp) .Call(graphics:::C_BinCount, SingleSpikeTrain, tp, FALSE, FALSE)
+    # function(tp) .Call(graphics:::C_BinCount, SingleSpikeTrain, tp, FALSE, FALSE)
+    function(tp) as.numeric(table(findInterval(SingleSpikeTrain, tp)))
   )
 
 
