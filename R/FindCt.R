@@ -53,7 +53,8 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
       })
     )
 
-    Split <- ct.best <- matrix(NA, nrow = length(spikes), ncol = val)
+    ct.best <- matrix(NA, nrow = length(spikes), ncol = val)
+    Split <- matrix(NA, nrow = length(spikes), ncol = val - 1)
 
     if (length(spikes) == 0) {
       stop("No spike trains provided; cannot estimate c(t).")
