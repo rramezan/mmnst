@@ -10,11 +10,11 @@
 #' @param PSTH if TRUE, will aggregate the spikes across all trials in each and every bin and then estimate c(t) using the post-stimulus-time histogram.
 #' If FALSE, will estimate a c(t) for each trial and average the c(t) estimates.
 #'
-#' @return A list of length 2 is returned.
-#' If PSTH=TRUE, the first item in the list (`ct.avg`) is the single estimate of c(t) based on the PSTH (scaled appropriately so that it integrates to the average number of spikes per trial),
-#' and the second item in the list (`ct.best`) is a matrix, containing one row per spike train / trial, whose rows each replicate `ct.avg`.
+#' @return A list of length 3 is returned.
+#' If PSTH=TRUE, the first item in the list (`ct.avg`) is the single estimate of \eqn{c(t)} based on the PSTH (scaled appropriately so that it integrates to the average number of spikes per trial),
+#' and the second item in the list (`ct.best`) is a matrix, containing one row per spike train / trial, whose rows each replicate `ct.avg`. The third element in the list (`split`) is the a binary vector of split status of each node which is the `splitvec` output from the function `PoissonRDP`.
 #' If PSTH=FALSE, each row of `ct.best` contains the \eqn{c(t)} estimates for the individual spike trains / trials, and
-#' `ct.avg` contains the single estimate of \eqn{c(t)} obtained by averaging the `ct.best` estimates.
+#' `ct.avg` contains the single estimate of \eqn{c(t)} obtained by averaging the `ct.best` estimates. The third element (`split`) is a matrix whose ith row is the `splitvec` vector from the function `PoissonRDP` applied on the ith spike train.
 #'
 #' @export
 FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
@@ -27,13 +27,17 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
 
   if (PSTH) {
     count.points <- tabulate(findInterval(sort(unlist(spikes)), terminal.points, left.open = TRUE))
+
     if (val - length(count.points) > 0) {
       count.points <- c(count.points, rep(0, val - length(count.points)))
     }
+
     if (J == 0) {
       ct.best.PSTH <- count.points
     } else {
-      ct.best.PSTH <- PoissonRDP(count.points, lambda)$est
+      PoissonRDP_fit <- PoissonRDP(count.points, lambda)
+      ct.best.PSTH <- PoissonRDP_fit$est
+      Split <- PoissonRDP_fit$splitvec
     }
 
     ct.best <- matrix(ct.best.PSTH, nrow = length(spikes), ncol = val, byrow = TRUE) / length(spikes)
@@ -49,7 +53,7 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
       })
     )
 
-    ct.best <- matrix(NA, nrow = length(spikes), ncol = val)
+    Split <- ct.best <- matrix(NA, nrow = length(spikes), ncol = val)
 
     if (length(spikes) == 0) {
       stop("No spike trains provided; cannot estimate c(t).")
@@ -59,7 +63,9 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
       if (J == 0) {
         ct.best[i, ] <- count.points[i, ]
       } else {
-        ct.best[i, ] <- PoissonRDP(count.points[i, ], lambda)$est
+        PoissonRDP_fit <- PoissonRDP(count.points[i, ], lambda)
+        ct.best[i, ] <- PoissonRDP_fit$est
+        Split[i, ] <- PoissonRDP_fit$splitvec
       }
     }
   }
@@ -80,5 +86,5 @@ FindCt <- function(spikes, t.start, t.end, lambda, J, PSTH = FALSE) {
     warning("c(t) was estimated using only one spike train.", call. = FALSE)
   }
 
-  return(list(ct.avg = ct.avg, ct.best = ct.best))
+  return(list(ct.avg = ct.avg, ct.best = ct.best, split = Split))
 }
